@@ -243,8 +243,8 @@ describe('Kloza Backend - Comprehensive Test Suite', () => {
                 expect(res.body.success).toBe(true);
                 expect(res.body.data.ideas).toHaveLength(5);
                 expect(res.body.data.pagination.totalItems).toBe(5);
-                expect(res.body.data.pagination.page).toBe(1);
-                expect(res.body.data.pagination.limit).toBe(10);
+                expect(res.body.data.pagination.currentPage).toBe(1);
+                expect(res.body.data.pagination.pageSize).toBe(10);
             });
 
             test('should filter ideas by status=approved', async () => {

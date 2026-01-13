@@ -1,12 +1,12 @@
 # Kloza API - Complete CRUD Guide
 
-## 🚀 Quick Start
+## Quick Start
 
 1. **Import Collection**: Open Postman → Import → Select `Kloza-API.postman_collection.json`
 2. **Start Server**: `npm run dev`
 3. **Test**: Run requests in order or use the "Complete Workflow" folder
 
-## 📋 All Endpoints
+## All Endpoints
 
 ### Ideas (Full CRUD)
 | Method | Endpoint | Description |
@@ -26,7 +26,7 @@
 | **DELETE** | `/api/kollabs/:id` | **Delete kollab** |
 | POST | `/api/kollabs/:id/discussions` | Add discussion to kollab |
 
-## 🔄 Common Update Operations
+## Common Update Operations
 
 ### Update Idea Status
 ```json
@@ -52,7 +52,7 @@ PATCH /api/kollabs/:id
 }
 ```
 
-## 🎯 Complete Workflow Example
+## Complete Workflow Example
 
 The collection includes a "Complete Workflow" folder that demonstrates:
 1. Create draft idea
@@ -63,20 +63,20 @@ The collection includes a "Complete Workflow" folder that demonstrates:
 
 **Run this folder** using Postman's Collection Runner to see the full lifecycle!
 
-## 🛡️ Business Rules
+## Business Rules
 
 ### Ideas
-- ✅ Can update any field (title, description, status, createdBy)
-- ❌ Cannot delete if has active kollab
+- Can update any field (title, description, status, createdBy)
+- Cannot delete if has active kollab
 - Status options: `draft`, `approved`, `archived`
 
 ### Kollabs
-- ✅ Can update goal, participants, successCriteria, status
-- ❌ Cannot delete active kollabs (must complete/cancel first)
-- ❌ Only one active kollab per idea
+- Can update goal, participants, successCriteria, status
+- Cannot delete active kollabs (must complete/cancel first)
+- Only one active kollab per idea
 - Status options: `active`, `completed`, `cancelled`
 
-## 📝 Update Examples
+## Update Examples
 
 ### Partial Update (PATCH)
 Only send fields you want to change:
@@ -99,7 +99,7 @@ PATCH /api/ideas/:id
 4. **Status Management**: Use PATCH to change idea/kollab status
 5. **Validation**: All updates respect the same validation rules as creation
 
-## ⚠️ Error Handling
+## Error Handling
 
 - `400` - Validation error (invalid data)
 - `403` - Forbidden (e.g., idea not approved)
@@ -107,10 +107,10 @@ PATCH /api/ideas/:id
 - `409` - Conflict (e.g., deleting idea with active kollab)
 - `422` - Unprocessable (e.g., whitespace-only content)
 
-## 🎨 New Features
+## New Features
 
-- ✨ **PATCH endpoints** for partial updates
-- ✨ **DELETE endpoints** with business rule enforcement
-- ✨ **Complete workflow** examples
-- ✨ **Status management** for ideas and kollabs
-- ✨ **Participant management** for kollabs
+- **PATCH endpoints** for partial updates
+- **DELETE endpoints** with business rule enforcement
+- **Complete workflow** examples
+- **Status management** for ideas and kollabs
+- **Participant management** for kollabs

@@ -162,8 +162,8 @@
                                     "pm.test('Response has pagination', function () {",
                                     "    const jsonData = pm.response.json();",
                                     "    pm.expect(jsonData.data).to.have.property('pagination');",
-                                    "    pm.expect(jsonData.data.pagination).to.have.property('page');",
-                                    "    pm.expect(jsonData.data.pagination).to.have.property('limit');",
+                                    "    pm.expect(jsonData.data.pagination).to.have.property('currentPage');",
+                                    "    pm.expect(jsonData.data.pagination).to.have.property('pageSize');",
                                     "    pm.expect(jsonData.data.pagination).to.have.property('totalItems');",
                                     "});",
                                     "",
@@ -214,7 +214,7 @@
                                 }
                             ]
                         },
-                        "description": "**Get all ideas with pagination, filtering, and sorting**\n\n**Query Parameters:**\n- `page` (optional): Page number, default 1\n- `limit` (optional): Items per page, default 10\n- `status` (optional): Filter by status (draft/approved/archived)\n- `sortBy` (optional): Sort field (createdAt/updatedAt/title), default createdAt\n- `sortOrder` (optional): asc or desc, default desc\n\n**Response:** Returns paginated list of ideas with metadata:\n- `ideas`: Array of idea objects\n- `pagination`: Object with page, limit, totalItems, totalPages, hasNextPage, hasPrevPage\n\n**Each idea includes:**\n- All idea fields\n- `hasActiveKollab`: Boolean indicating if idea has an active collaboration\n- `activeKollab`: Populated kollab object if exists"
+                        "description": "**Get all ideas with pagination, filtering, and sorting**\n\n**Query Parameters:**\n- `page` (optional): Page number, default 1\n- `limit` (optional): Items per page, default 10\n- `status` (optional): Filter by status (draft/approved/archived)\n- `sortBy` (optional): Sort field (createdAt/updatedAt/title), default createdAt\n- `sortOrder` (optional): asc or desc, default desc\n\n**Response:** Returns paginated list of ideas with metadata:\n- `ideas`: Array of idea objects\n- `pagination`: Object with currentPage, pageSize, totalItems, totalPages, hasNextPage, hasPreviousPage\n\n**Each idea includes:**\n- All idea fields\n- `hasActiveKollab`: Boolean indicating if idea has an active collaboration\n- `activeKollab`: Populated kollab object if exists"
                     },
                     "response": []
                 },
@@ -593,17 +593,15 @@
                                     "",
                                     "pm.test('Discussion was added', function () {",
                                     "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data.discussions).to.be.an('array');",
-                                    "    pm.expect(jsonData.data.discussions.length).to.be.greaterThan(0);",
+                                    "    pm.expect(jsonData.data).to.have.property('_id');",
+                                    "    pm.expect(jsonData.data).to.have.property('message');",
+                                    "    pm.expect(jsonData.data).to.have.property('author');",
                                     "});",
                                     "",
                                     "if (pm.response.code === 201) {",
                                     "    const response = pm.response.json();",
-                                    "    if (response.data.discussions && response.data.discussions.length > 0) {",
-                                    "        const lastDiscussion = response.data.discussions[response.data.discussions.length - 1];",
-                                    "        pm.collectionVariables.set('discussionId', lastDiscussion._id);",
-                                    "        console.log('Saved discussionId:', lastDiscussion._id);",
-                                    "    }",
+                                    "    pm.collectionVariables.set('discussionId', response.data._id);",
+                                    "    console.log('Saved discussionId:', response.data._id);",
                                     "}"
                                 ]
                             }
@@ -654,9 +652,7 @@
                                     "",
                                     "pm.test('Reply has parentId', function () {",
                                     "    const jsonData = pm.response.json();",
-                                    "    const discussions = jsonData.data.discussions;",
-                                    "    const lastDiscussion = discussions[discussions.length - 1];",
-                                    "    pm.expect(lastDiscussion).to.have.property('parentId');",
+                                    "    pm.expect(jsonData.data).to.have.property('parentId');",
                                     "});"
                                 ]
                             }

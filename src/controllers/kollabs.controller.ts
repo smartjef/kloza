@@ -67,7 +67,9 @@ export const addDiscussion = asyncHandler(async (req: Request, res: Response) =>
   }
 
   if (kollab.status !== 'active') {
-    throw new ConflictError('Cannot add discussion to non-active Kollab');
+    const error = new ConflictError('Cannot add discussion to non-active Kollab');
+    (error as any).data = { currentStatus: kollab.status, requiredStatus: 'active' };
+    throw error;
   }
 
   if (kollab.discussions.length >= 1000) {
@@ -103,7 +105,9 @@ export const addDiscussion = asyncHandler(async (req: Request, res: Response) =>
     throw error;
   }
 
-  return sendSuccess(res, kollab, 'Discussion added successfully', 201);
+  // Return the newly created discussion
+  const newDiscussion = kollab.discussions[kollab.discussions.length - 1];
+  return sendSuccess(res, newDiscussion, 'Discussion added successfully', 201);
 });
 
 export const updateKollab = asyncHandler(async (req: Request, res: Response) => {
