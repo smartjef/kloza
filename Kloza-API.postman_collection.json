@@ -1,0 +1,981 @@
+{
+    "info": {
+        "name": "Kloza API - Complete CRUD",
+        "description": "Comprehensive API collection for the Kloza backend with all CRUD operations. Includes detailed examples, test scripts, and complete workflows for Ideas, Kollabs, and Discussions management.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "version": "2.0.0"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000/api",
+            "type": "string"
+        },
+        {
+            "key": "ideaId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "kollabId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "discussionId",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Ideas",
+            "description": "Complete CRUD operations for Ideas. Ideas represent project concepts that can be approved and turned into Kollabs (collaborations).",
+            "item": [
+                {
+                    "name": "Create Idea",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response has success flag', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "});",
+                                    "",
+                                    "pm.test('Idea has required fields', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property('_id');",
+                                    "    pm.expect(jsonData.data).to.have.property('title');",
+                                    "    pm.expect(jsonData.data).to.have.property('description');",
+                                    "    pm.expect(jsonData.data).to.have.property('status');",
+                                    "});",
+                                    "",
+                                    "// Save idea ID for subsequent requests",
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('ideaId', response.data._id);",
+                                    "    console.log('Saved ideaId:', response.data._id);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"AI-Powered Task Management System\",\n  \"description\": \"Build an intelligent task management platform that uses machine learning to predict task completion times, automatically prioritize work, and suggest optimal scheduling. The system will integrate with popular tools like Slack, Google Calendar, and Jira to provide a unified productivity experience.\",\n  \"createdBy\": \"Sarah Johnson\",\n  \"status\": \"draft\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/ideas",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "ideas"
+                            ]
+                        },
+                        "description": "**Create a new idea**\n\n**Required Fields:**\n- `title` (3-200 chars): Short, descriptive title\n- `description` (10-5000 chars): Detailed explanation\n- `createdBy` (2-100 chars): Author name\n\n**Optional Fields:**\n- `status`: `draft` (default), `approved`, or `archived`\n\n**Response:** Returns the created idea with auto-generated `_id`, `createdAt`, `updatedAt`, and `hasActiveKollab` virtual field.\n\n**Business Rules:**\n- Title and description are trimmed automatically\n- Status defaults to 'draft' if not specified\n- Ideas can only be turned into Kollabs when status is 'approved'"
+                    },
+                    "response": [
+                        {
+                            "name": "Success - Draft Idea",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"title\": \"Mobile App for Fitness Tracking\",\n  \"description\": \"Create a comprehensive fitness tracking application\",\n  \"createdBy\": \"John Doe\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/ideas",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "ideas"
+                                    ]
+                                }
+                            },
+                            "status": "Created",
+                            "code": 201,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"success\": true,\n  \"message\": \"Idea created successfully\",\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"title\": \"Mobile App for Fitness Tracking\",\n    \"description\": \"Create a comprehensive fitness tracking application\",\n    \"createdBy\": \"John Doe\",\n    \"status\": \"draft\",\n    \"createdAt\": \"2026-01-13T09:00:00.000Z\",\n    \"updatedAt\": \"2026-01-13T09:00:00.000Z\",\n    \"hasActiveKollab\": false\n  }\n}"
+                        },
+                        {
+                            "name": "Error - Missing Required Field",
+                            "originalRequest": {
+                                "method": "POST",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"title\": \"Test\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/ideas"
+                                }
+                            },
+                            "status": "Bad Request",
+                            "code": 400,
+                            "body": "{\n  \"success\": false,\n  \"error\": \"body.description: Invalid input: expected string, received undefined\"\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "Get All Ideas",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response has pagination', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property('pagination');",
+                                    "    pm.expect(jsonData.data.pagination).to.have.property('page');",
+                                    "    pm.expect(jsonData.data.pagination).to.have.property('limit');",
+                                    "    pm.expect(jsonData.data.pagination).to.have.property('totalItems');",
+                                    "});",
+                                    "",
+                                    "pm.test('Ideas array exists', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data.ideas).to.be.an('array');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/ideas?page=1&limit=10&status=approved&sortBy=createdAt&sortOrder=desc",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "ideas"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number (default: 1)"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10",
+                                    "description": "Items per page (default: 10)"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "approved",
+                                    "description": "Filter by status: draft, approved, archived"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "createdAt",
+                                    "description": "Sort field: createdAt, updatedAt, title"
+                                },
+                                {
+                                    "key": "sortOrder",
+                                    "value": "desc",
+                                    "description": "Sort order: asc, desc"
+                                }
+                            ]
+                        },
+                        "description": "**Get all ideas with pagination, filtering, and sorting**\n\n**Query Parameters:**\n- `page` (optional): Page number, default 1\n- `limit` (optional): Items per page, default 10\n- `status` (optional): Filter by status (draft/approved/archived)\n- `sortBy` (optional): Sort field (createdAt/updatedAt/title), default createdAt\n- `sortOrder` (optional): asc or desc, default desc\n\n**Response:** Returns paginated list of ideas with metadata:\n- `ideas`: Array of idea objects\n- `pagination`: Object with page, limit, totalItems, totalPages, hasNextPage, hasPrevPage\n\n**Each idea includes:**\n- All idea fields\n- `hasActiveKollab`: Boolean indicating if idea has an active collaboration\n- `activeKollab`: Populated kollab object if exists"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Idea by ID",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Idea has hasActiveKollab field', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property('hasActiveKollab');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/ideas/{{ideaId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "ideas",
+                                "{{ideaId}}"
+                            ]
+                        },
+                        "description": "**Get a specific idea by ID**\n\n**Path Parameters:**\n- `id`: MongoDB ObjectId of the idea\n\n**Response:** Returns the idea with:\n- All idea fields\n- `hasActiveKollab`: Virtual field (boolean)\n- `activeKollab`: Populated kollab if exists\n\n**Error Responses:**\n- 400: Invalid ObjectId format\n- 404: Idea not found"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Idea (PATCH)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Idea was updated', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.message).to.include('updated');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"approved\",\n  \"description\": \"Updated: Build an intelligent task management platform with ML-powered predictions, automatic prioritization, and seamless integrations with Slack, Google Calendar, Jira, and Asana. Features include smart scheduling, team collaboration tools, and detailed analytics.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/ideas/{{ideaId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "ideas",
+                                "{{ideaId}}"
+                            ]
+                        },
+                        "description": "**Update an idea (partial update)**\n\n**Path Parameters:**\n- `id`: MongoDB ObjectId of the idea\n\n**Updatable Fields (all optional):**\n- `title` (3-200 chars)\n- `description` (10-5000 chars)\n- `createdBy` (2-100 chars)\n- `status` (draft/approved/archived)\n\n**Common Use Cases:**\n1. **Approve idea**: `{\"status\": \"approved\"}`\n2. **Archive idea**: `{\"status\": \"archived\"}`\n3. **Update description**: `{\"description\": \"New text\"}`\n4. **Multiple fields**: `{\"status\": \"approved\", \"description\": \"Updated\"}`\n\n**Response:** Returns the updated idea\n\n**Error Responses:**\n- 400: Validation error\n- 404: Idea not found"
+                    },
+                    "response": [
+                        {
+                            "name": "Approve Idea",
+                            "originalRequest": {
+                                "method": "PATCH",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\"status\": \"approved\"}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/ideas/{{ideaId}}"
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "body": "{\n  \"success\": true,\n  \"message\": \"Idea updated successfully\",\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"status\": \"approved\",\n    \"updatedAt\": \"2026-01-13T09:15:00.000Z\"\n  }\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "Delete Idea",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Deletion confirmed', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.message).to.include('deleted');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/ideas/{{ideaId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "ideas",
+                                "{{ideaId}}"
+                            ]
+                        },
+                        "description": "**Delete an idea**\n\n**Path Parameters:**\n- `id`: MongoDB ObjectId of the idea\n\n**Business Rules:**\n- ❌ Cannot delete idea with active kollab\n- ✅ Can delete ideas with completed/cancelled kollabs\n- ✅ Can delete ideas with no kollabs\n\n**Response:** Returns success message with null data\n\n**Error Responses:**\n- 400: Invalid ObjectId\n- 404: Idea not found\n- 500: Cannot delete idea with active kollab"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Kollabs",
+            "description": "Complete CRUD operations for Kollabs (collaborations). Kollabs are active projects created from approved ideas.",
+            "item": [
+                {
+                    "name": "Create Kollab",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test('Kollab has required fields', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property('_id');",
+                                    "    pm.expect(jsonData.data).to.have.property('goal');",
+                                    "    pm.expect(jsonData.data).to.have.property('participants');",
+                                    "    pm.expect(jsonData.data).to.have.property('status');",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('kollabId', response.data._id);",
+                                    "    console.log('Saved kollabId:', response.data._id);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"ideaId\": \"{{ideaId}}\",\n  \"goal\": \"Launch the AI-powered task management MVP by Q2 2026 with core features including smart scheduling, ML-based prioritization, and integrations with Slack and Google Calendar\",\n  \"participants\": [\n    \"Sarah Johnson (Product Lead)\",\n    \"Michael Chen (Tech Lead)\",\n    \"Emily Rodriguez (UX Designer)\",\n    \"David Kim (ML Engineer)\",\n    \"Lisa Wang (Backend Developer)\"\n  ],\n  \"successCriteria\": \"Successfully onboard 500 beta users with 80% satisfaction rate, achieve 70% task completion accuracy in ML predictions, and maintain 99.5% uptime. Complete integration with at least 3 major productivity tools.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/kollabs",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "kollabs"
+                            ]
+                        },
+                        "description": "**Create a new kollab from an approved idea**\n\n**Required Fields:**\n- `ideaId`: Valid MongoDB ObjectId of an approved idea\n- `goal` (10-1000 chars): Clear, measurable objective\n- `participants` (1-50 items, each 2-100 chars): Team members\n- `successCriteria` (10-2000 chars): Definition of done\n\n**Business Rules:**\n- ✅ Idea must have status 'approved'\n- ❌ Only ONE active kollab per idea allowed\n- ✅ Can create new kollab after completing/cancelling previous one\n- ✅ Whitespace-only content returns 422\n\n**Response:** Returns created kollab with auto-generated `_id`, `status` (default: 'active'), `createdAt`, `updatedAt`, and empty `discussions` array"
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "status": "Created",
+                            "code": 201,
+                            "body": "{\n  \"success\": true,\n  \"message\": \"Kollab created successfully\",\n  \"data\": {\n    \"_id\": \"507f191e810c19729de860ea\",\n    \"ideaId\": \"507f1f77bcf86cd799439011\",\n    \"goal\": \"Launch MVP by Q2 2026\",\n    \"participants\": [\"Sarah\", \"Michael\", \"Emily\"],\n    \"successCriteria\": \"500 beta users, 80% satisfaction\",\n    \"status\": \"active\",\n    \"discussions\": [],\n    \"createdAt\": \"2026-01-13T09:30:00.000Z\",\n    \"updatedAt\": \"2026-01-13T09:30:00.000Z\"\n  }\n}"
+                        },
+                        {
+                            "name": "Error - Duplicate Active Kollab",
+                            "status": "Conflict",
+                            "code": 409,
+                            "body": "{\n  \"success\": false,\n  \"error\": \"Duplicate active Kollab not allowed\"\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "Get Kollab by ID",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Kollab has discussions array', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property('discussions');",
+                                    "    pm.expect(jsonData.data.discussions).to.be.an('array');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/kollabs/{{kollabId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "kollabs",
+                                "{{kollabId}}"
+                            ]
+                        },
+                        "description": "**Get a specific kollab by ID**\n\n**Path Parameters:**\n- `id`: MongoDB ObjectId of the kollab\n\n**Response:** Returns kollab with:\n- All kollab fields\n- `ideaId`: Populated idea object\n- `discussions`: Array of all discussions (threaded)\n\n**Error Responses:**\n- 400: Invalid ObjectId format\n- 404: Kollab not found"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Kollab (PATCH)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Kollab was updated', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.message).to.include('updated');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"completed\",\n  \"goal\": \"Successfully launched AI-powered task management MVP in Q2 2026 with all core features and integrations\",\n  \"participants\": [\n    \"Sarah Johnson (Product Lead)\",\n    \"Michael Chen (Tech Lead)\",\n    \"Emily Rodriguez (UX Designer)\",\n    \"David Kim (ML Engineer)\",\n    \"Lisa Wang (Backend Developer)\",\n    \"Alex Thompson (QA Engineer)\"\n  ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/kollabs/{{kollabId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "kollabs",
+                                "{{kollabId}}"
+                            ]
+                        },
+                        "description": "**Update a kollab (partial update)**\n\n**Path Parameters:**\n- `id`: MongoDB ObjectId of the kollab\n\n**Updatable Fields (all optional):**\n- `goal` (10-1000 chars)\n- `participants` (1-50 items, each 2-100 chars)\n- `successCriteria` (10-2000 chars)\n- `status` (active/completed/cancelled)\n\n**Common Use Cases:**\n1. **Complete kollab**: `{\"status\": \"completed\"}`\n2. **Cancel kollab**: `{\"status\": \"cancelled\"}`\n3. **Add participant**: `{\"participants\": [\"existing\", \"new member\"]}`\n4. **Update goal**: `{\"goal\": \"Revised objective\"}`\n\n**Response:** Returns updated kollab\n\n**Error Responses:**\n- 400: Validation error\n- 404: Kollab not found\n- 422: Whitespace-only content"
+                    },
+                    "response": [
+                        {
+                            "name": "Complete Kollab",
+                            "originalRequest": {
+                                "method": "PATCH",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\"status\": \"completed\"}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/kollabs/{{kollabId}}"
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "body": "{\n  \"success\": true,\n  \"message\": \"Kollab updated successfully\",\n  \"data\": {\n    \"status\": \"completed\",\n    \"updatedAt\": \"2026-01-13T10:00:00.000Z\"\n  }\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "Delete Kollab",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Deletion confirmed', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.message).to.include('deleted');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/kollabs/{{kollabId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "kollabs",
+                                "{{kollabId}}"
+                            ]
+                        },
+                        "description": "**Delete a kollab**\n\n**Path Parameters:**\n- `id`: MongoDB ObjectId of the kollab\n\n**Business Rules:**\n- ❌ Cannot delete ACTIVE kollabs\n- ✅ Must complete or cancel kollab first\n- ✅ Can delete completed/cancelled kollabs\n- ✅ Deletes all associated discussions\n\n**Response:** Returns success message with null data\n\n**Error Responses:**\n- 400: Invalid ObjectId\n- 404: Kollab not found\n- 409: Cannot delete active kollab"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Discussions",
+            "description": "Add threaded discussions to kollabs. Supports nested replies up to 1000 discussions per kollab.",
+            "item": [
+                {
+                    "name": "Add Discussion (Top-level)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test('Discussion was added', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data.discussions).to.be.an('array');",
+                                    "    pm.expect(jsonData.data.discussions.length).to.be.greaterThan(0);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.data.discussions && response.data.discussions.length > 0) {",
+                                    "        const lastDiscussion = response.data.discussions[response.data.discussions.length - 1];",
+                                    "        pm.collectionVariables.set('discussionId', lastDiscussion._id);",
+                                    "        console.log('Saved discussionId:', lastDiscussion._id);",
+                                    "    }",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"message\": \"Great progress on the ML model! I've reviewed the latest predictions and the accuracy has improved to 72%. Should we start the beta testing phase next week? I think we're ready to onboard the first 50 users.\",\n  \"author\": \"Sarah Johnson\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/kollabs/{{kollabId}}/discussions",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "kollabs",
+                                "{{kollabId}}",
+                                "discussions"
+                            ]
+                        },
+                        "description": "**Add a top-level discussion to a kollab**\n\n**Path Parameters:**\n- `id`: MongoDB ObjectId of the kollab\n\n**Required Fields:**\n- `message` (1-5000 chars): Discussion content\n- `author` (2-100 chars): Author name\n\n**Optional Fields:**\n- `parentId`: Omit for top-level discussion\n\n**Business Rules:**\n- ✅ Only active kollabs accept discussions\n- ❌ Maximum 1000 discussions per kollab\n- ❌ Whitespace-only content returns 422\n- ✅ Supports nested threading (replies to replies)\n\n**Response:** Returns updated kollab with new discussion in discussions array"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Add Discussion (Reply)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test('Reply has parentId', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    const discussions = jsonData.data.discussions;",
+                                    "    const lastDiscussion = discussions[discussions.length - 1];",
+                                    "    pm.expect(lastDiscussion).to.have.property('parentId');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"message\": \"Absolutely! The model performance looks solid. I'll coordinate with the QA team to prepare the beta testing environment. Let's aim for Monday to start onboarding. I'll also prepare the feedback collection forms.\",\n  \"author\": \"Michael Chen\",\n  \"parentId\": \"{{discussionId}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/kollabs/{{kollabId}}/discussions",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "kollabs",
+                                "{{kollabId}}",
+                                "discussions"
+                            ]
+                        },
+                        "description": "**Add a threaded reply to an existing discussion**\n\n**Path Parameters:**\n- `id`: MongoDB ObjectId of the kollab\n\n**Required Fields:**\n- `message` (1-5000 chars): Reply content\n- `author` (2-100 chars): Author name\n- `parentId`: MongoDB ObjectId of parent discussion\n\n**Business Rules:**\n- ✅ Parent discussion must exist in same kollab\n- ❌ Cannot reply to discussions in different kollabs\n- ✅ Supports unlimited nesting depth\n- ✅ Each reply gets unique `_id` and `createdAt`\n\n**Response:** Returns updated kollab with new reply in discussions array\n\n**Error Responses:**\n- 400: Invalid parentId format\n- 404: Parent discussion not found"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Workflows",
+            "description": "Complete end-to-end workflows demonstrating the full lifecycle from idea to completed kollab",
+            "item": [
+                {
+                    "name": "Complete Workflow: Idea → Kollab → Discussion",
+                    "description": "**Complete workflow demonstrating:**\n1. Create draft idea\n2. Approve idea (PATCH status)\n3. Create kollab from approved idea\n4. Add discussion to kollab\n5. Add threaded reply\n6. Complete kollab (PATCH status)\n\n**Run this folder** using Postman's Collection Runner to execute the full workflow automatically!",
+                    "item": [
+                        {
+                            "name": "1. Create Draft Idea",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 201) {",
+                                            "    const response = pm.response.json();",
+                                            "    pm.collectionVariables.set('ideaId', response.data._id);",
+                                            "    console.log('✓ Created idea:', response.data._id);",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"title\": \"AI-Powered Customer Support Chatbot\",\n  \"description\": \"Develop an intelligent chatbot using GPT-4 to handle customer inquiries, reduce support ticket volume by 60%, and provide 24/7 automated assistance with seamless handoff to human agents when needed.\",\n  \"createdBy\": \"Product Team\",\n  \"status\": \"draft\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/ideas",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "ideas"
+                                    ]
+                                },
+                                "description": "Step 1: Create a new idea in draft status"
+                            }
+                        },
+                        {
+                            "name": "2. Approve Idea",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Idea approved', function () {",
+                                            "    const jsonData = pm.response.json();",
+                                            "    pm.expect(jsonData.data.status).to.eql('approved');",
+                                            "    console.log('✓ Idea approved');",
+                                            "});"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"status\": \"approved\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/ideas/{{ideaId}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "ideas",
+                                        "{{ideaId}}"
+                                    ]
+                                },
+                                "description": "Step 2: Approve the idea so it can be turned into a kollab"
+                            }
+                        },
+                        {
+                            "name": "3. Create Kollab",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 201) {",
+                                            "    const response = pm.response.json();",
+                                            "    pm.collectionVariables.set('kollabId', response.data._id);",
+                                            "    console.log('✓ Created kollab:', response.data._id);",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"ideaId\": \"{{ideaId}}\",\n  \"goal\": \"Launch AI chatbot MVP in Q1 2026 with GPT-4 integration, support for top 10 FAQs, and seamless handoff to human agents\",\n  \"participants\": [\"Dev Team\", \"Design Team\", \"Product Team\", \"Customer Success\"],\n  \"successCriteria\": \"Handle 1000+ conversations with 90% accuracy, reduce support tickets by 60%, maintain 95% customer satisfaction, and achieve <2 second response time\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/kollabs",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "kollabs"
+                                    ]
+                                },
+                                "description": "Step 3: Create a kollab from the approved idea"
+                            }
+                        },
+                        {
+                            "name": "4. Add Discussion",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 201) {",
+                                            "    const response = pm.response.json();",
+                                            "    if (response.data.discussions && response.data.discussions.length > 0) {",
+                                            "        const lastDiscussion = response.data.discussions[response.data.discussions.length - 1];",
+                                            "        pm.collectionVariables.set('discussionId', lastDiscussion._id);",
+                                            "        console.log('✓ Added discussion:', lastDiscussion._id);",
+                                            "    }",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"message\": \"I've completed the initial GPT-4 integration. The chatbot can now handle basic FAQs with 85% accuracy. Next step is to train it on our specific knowledge base. Should we schedule a demo for stakeholders?\",\n  \"author\": \"Dev Team\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/kollabs/{{kollabId}}/discussions",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "kollabs",
+                                        "{{kollabId}}",
+                                        "discussions"
+                                    ]
+                                },
+                                "description": "Step 4: Add a discussion to the kollab"
+                            }
+                        },
+                        {
+                            "name": "5. Add Reply",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Reply added', function () {",
+                                            "    pm.response.to.have.status(201);",
+                                            "    console.log('✓ Added reply');",
+                                            "});"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"message\": \"Excellent progress! Yes, let's schedule a demo for Friday. I'll invite the executive team and customer success leads. Please prepare a few example conversations showcasing the handoff to human agents.\",\n  \"author\": \"Product Team\",\n  \"parentId\": \"{{discussionId}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/kollabs/{{kollabId}}/discussions",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "kollabs",
+                                        "{{kollabId}}",
+                                        "discussions"
+                                    ]
+                                },
+                                "description": "Step 5: Add a threaded reply to the discussion"
+                            }
+                        },
+                        {
+                            "name": "6. Complete Kollab",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Kollab completed', function () {",
+                                            "    const jsonData = pm.response.json();",
+                                            "    pm.expect(jsonData.data.status).to.eql('completed');",
+                                            "    console.log('✓ Kollab completed successfully!');",
+                                            "    console.log('\\n=== WORKFLOW COMPLETE ===');",
+                                            "});"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"status\": \"completed\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/kollabs/{{kollabId}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "kollabs",
+                                        "{{kollabId}}"
+                                    ]
+                                },
+                                "description": "Step 6: Mark the kollab as completed"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Health Check",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:3000/health",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "health"
+                    ]
+                },
+                "description": "**Check if the API server is running**\n\n**Response:**\n```json\n{\n  \"status\": \"UP\",\n  \"timestamp\": \"2026-01-13T09:00:00.000Z\"\n}\n```"
+            },
+            "response": []
+        }
+    ]
+}

@@ -48,9 +48,7 @@ export const createKollab = asyncHandler(async (req: Request, res: Response) => 
 });
 
 export const getKollabById = asyncHandler(async (req: Request, res: Response) => {
-  const kollab = await Kollab.findById(req.params.id)
-    .populate('ideaId', 'title description status')
-    .lean();
+  const kollab = await Kollab.findById(req.params.id).populate('ideaId');
 
   if (!kollab) {
     throw new NotFoundError('Kollab not found');
@@ -60,19 +58,16 @@ export const getKollabById = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const addDiscussion = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
   const { message, author, parentId } = req.body;
 
-  const kollab = await Kollab.findById(id);
+  const kollab = await Kollab.findById(req.params.id);
 
   if (!kollab) {
     throw new NotFoundError('Kollab not found');
   }
 
   if (kollab.status !== 'active') {
-    const error = new ConflictError('Cannot add discussion to non-active Kollab');
-    (error as any).data = { currentStatus: kollab.status, requiredStatus: 'active' };
-    throw error;
+    throw new ConflictError('Cannot add discussion to non-active Kollab');
   }
 
   if (kollab.discussions.length >= 1000) {
@@ -80,24 +75,23 @@ export const addDiscussion = asyncHandler(async (req: Request, res: Response) =>
   }
 
   if (parentId) {
-    const parentExists = kollab.discussions.some(d => d._id && d._id.toString() === parentId);
+    const parentExists = kollab.discussions.some((d) => d._id?.toString() === parentId);
     if (!parentExists) {
       throw new NotFoundError('Parent discussion not found');
     }
   }
 
+  const discussion = {
+    _id: new mongoose.Types.ObjectId(),
+    message,
+    author,
+    parentId: parentId || null,
+    createdAt: new Date(),
+  };
+
   try {
-    kollab.discussions.push({
-      message,
-      author,
-      parentId: parentId || null,
-      createdAt: new Date(),
-    } as any);
-
+    kollab.discussions.push(discussion);
     await kollab.save();
-
-    const newDiscussion = kollab.discussions[kollab.discussions.length - 1];
-    return sendSuccess(res, newDiscussion, 'Discussion added successfully', 201);
   } catch (error: any) {
     // Handle Mongoose validation errors
     if (error.name === 'ValidationError') {
@@ -108,4 +102,36 @@ export const addDiscussion = asyncHandler(async (req: Request, res: Response) =>
     }
     throw error;
   }
+
+  return sendSuccess(res, kollab, 'Discussion added successfully', 201);
+});
+
+export const updateKollab = asyncHandler(async (req: Request, res: Response) => {
+  const kollab = await Kollab.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true, runValidators: true }
+  ).populate('ideaId');
+
+  if (!kollab) {
+    throw new NotFoundError('Kollab not found');
+  }
+
+  return sendSuccess(res, kollab, 'Kollab updated successfully');
+});
+
+export const deleteKollab = asyncHandler(async (req: Request, res: Response) => {
+  const kollab = await Kollab.findById(req.params.id);
+
+  if (!kollab) {
+    throw new NotFoundError('Kollab not found');
+  }
+
+  // Prevent deletion of active kollabs
+  if (kollab.status === 'active') {
+    throw new ConflictError('Cannot delete active kollab. Please complete or cancel it first.');
+  }
+
+  await Kollab.findByIdAndDelete(req.params.id);
+  return sendSuccess(res, null, 'Kollab deleted successfully');
 });

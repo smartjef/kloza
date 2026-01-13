@@ -15,6 +15,18 @@ export const createKollabSchema = z.object({
   }),
 });
 
+export const updateKollabSchema = z.object({
+  params: z.object({
+    id: objectIdSchema,
+  }),
+  body: z.object({
+    goal: z.string().trim().min(10).max(1000).optional(),
+    participants: z.array(z.string().trim().min(2).max(100)).nonempty().max(50).optional(),
+    successCriteria: z.string().trim().min(10).max(2000).optional(),
+    status: z.enum(['active', 'completed', 'cancelled']).optional(),
+  }),
+});
+
 export const addDiscussionSchema = z.object({
   params: z.object({
     id: objectIdSchema,
@@ -36,3 +48,4 @@ export const kollabIdSchema = z.object({
     id: objectIdSchema,
   }),
 });
+

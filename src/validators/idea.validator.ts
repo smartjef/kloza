@@ -14,6 +14,18 @@ export const createIdeaSchema = z.object({
   }),
 });
 
+export const updateIdeaSchema = z.object({
+  params: z.object({
+    id: objectIdSchema,
+  }),
+  body: z.object({
+    title: z.string().trim().min(3).max(200).optional(),
+    description: z.string().trim().min(10).max(5000).optional(),
+    createdBy: z.string().trim().min(2).max(100).optional(),
+    status: z.enum(['draft', 'approved', 'archived']).optional(),
+  }),
+});
+
 export const getIdeasSchema = z.object({
   query: z.object({
     page: z.string().regex(/^\d+$/).default('1').transform(Number),
@@ -29,3 +41,4 @@ export const ideaIdSchema = z.object({
     id: objectIdSchema,
   }),
 });
+

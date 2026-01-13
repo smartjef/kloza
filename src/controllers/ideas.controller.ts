@@ -49,3 +49,39 @@ export const getIdeaById = asyncHandler(async (req: Request, res: Response) => {
 
   return sendSuccess(res, idea);
 });
+
+export const updateIdea = asyncHandler(async (req: Request, res: Response) => {
+  const ideaDoc = await Idea.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true, runValidators: true }
+  ).populate('activeKollab');
+
+  if (!ideaDoc) {
+    throw new NotFoundError('Idea not found');
+  }
+
+  const idea = ideaDoc.toJSON();
+  return sendSuccess(res, idea, 'Idea updated successfully');
+});
+
+export const deleteIdea = asyncHandler(async (req: Request, res: Response) => {
+  const idea = await Idea.findById(req.params.id);
+
+  if (!idea) {
+    throw new NotFoundError('Idea not found');
+  }
+
+  // Check if idea has active kollab
+  const activeKollab = await import('../models/Kollab.js').then(m =>
+    m.Kollab.findOne({ ideaId: req.params.id, status: 'active' })
+  );
+
+  if (activeKollab) {
+    throw new Error('Cannot delete idea with active kollab');
+  }
+
+  await Idea.findByIdAndDelete(req.params.id);
+  return sendSuccess(res, null, 'Idea deleted successfully');
+});
+
